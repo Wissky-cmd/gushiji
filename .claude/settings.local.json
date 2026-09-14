@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /tmp/heima-scaffold)",
+      "Read(//tmp/**)",
+      "Bash(rm -rf heimajizhang)",
+      "Bash(npm create *)",
+      "Bash(ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ npm install)",
+      "Bash(unset ELECTRON_RUN_AS_NODE)",
+      "Bash(npm run *)",
+      "Bash(reg query *)",
+      "Read(//c/Users/crazy/**)",
+      "Bash(tasklist)"
+    ]
+  }
+}
