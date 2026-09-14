@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: app
+appId: com.heimajizhang.app
+productName: 黑马记账
 directories:
   buildResources: build
 files:

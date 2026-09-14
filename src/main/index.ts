@@ -2,12 +2,16 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { initDb, getCategories, getRecords, createRecord, updateRecord, deleteRecord } from './db'
+import type { RecordInput, RecordType } from '../shared/types'
 
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1000,
+    height: 720,
+    minWidth: 860,
+    minHeight: 620,
     show: false,
     title: '黑马记账',
     autoHideMenuBar: true,
@@ -36,12 +40,24 @@ function createWindow(): void {
   }
 }
 
+// 注册账本数据库接口（界面通过 window.api 调用，见 src/preload/index.ts）
+function registerIpcHandlers(): void {
+  ipcMain.handle('db:getCategories', (_event, type: RecordType) => getCategories(type))
+  ipcMain.handle('db:getRecords', (_event, month: string) => getRecords(month))
+  ipcMain.handle('db:createRecord', (_event, input: RecordInput) => createRecord(input))
+  ipcMain.handle('db:updateRecord', (_event, id: number, input: RecordInput) => updateRecord(id, input))
+  ipcMain.handle('db:deleteRecord', (_event, id: number) => deleteRecord(id))
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('com.heimajizhang')
+
+  initDb()
+  registerIpcHandlers()
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -49,9 +65,6 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
-
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
 
   createWindow()
 
@@ -70,6 +83,3 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
