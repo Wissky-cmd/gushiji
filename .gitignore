@@ -1,0 +1,12 @@
+# 依赖包（第三方代码，不纳入版本管理）
+node_modules/
+
+# 打包输出目录
+dist/
+out/
+release/
+
+# 日志与临时文件
+*.log
+.DS_Store
+Thumbs.db
