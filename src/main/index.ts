@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { initDb, getCategories, getRecords, createRecord, updateRecord, deleteRecord } from './db'
+import { initDb, getCategories, getRecords, getMonthTrend, createRecord, updateRecord, deleteRecord } from './db'
 import type { RecordInput, RecordType } from '../shared/types'
 
 function createWindow(): void {
@@ -44,6 +44,7 @@ function createWindow(): void {
 function registerIpcHandlers(): void {
   ipcMain.handle('db:getCategories', (_event, type: RecordType) => getCategories(type))
   ipcMain.handle('db:getRecords', (_event, month: string) => getRecords(month))
+  ipcMain.handle('db:getMonthTrend', (_event, count: number) => getMonthTrend(count))
   ipcMain.handle('db:createRecord', (_event, input: RecordInput) => createRecord(input))
   ipcMain.handle('db:updateRecord', (_event, id: number, input: RecordInput) => updateRecord(id, input))
   ipcMain.handle('db:deleteRecord', (_event, id: number) => deleteRecord(id))

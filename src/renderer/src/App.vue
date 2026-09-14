@@ -1,396 +1,85 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import dayjs from 'dayjs'
-import { ElMessage } from 'element-plus'
-import RecordFormDialog from './components/RecordFormDialog.vue'
-import type { Category, RecordItem } from '../../shared/types'
+import { ref } from 'vue'
+import BillsView from './components/BillsView.vue'
+import StatsView from './components/StatsView.vue'
 
-const currentMonth = ref(dayjs().format('YYYY-MM'))
-const records = ref<RecordItem[]>([])
-const categories = ref<{ expense: Category[]; income: Category[] }>({ expense: [], income: [] })
-const keyword = ref('')
-const filterCategoryId = ref<number | null>(null)
-const dialogVisible = ref(false)
-const editingRecord = ref<RecordItem | null>(null)
-const loading = ref(false)
-
-// 分类树：一级作为父节点，二级作为子节点
-interface CategoryTree {
-  value: number
-  label: string
-  children: { value: number; label: string }[]
-}
-
-function buildTree(list: Category[]): CategoryTree[] {
-  return list
-    .filter((c) => c.parentId === null)
-    .map((p) => ({
-      value: p.id,
-      label: `${p.icon} ${p.name}`,
-      children: list
-        .filter((c) => c.parentId === p.id)
-        .map((c) => ({ value: c.id, label: c.name }))
-    }))
-}
-
-// 分类筛选下拉：支出与收入的一级分组都列出
-const filterGroups = computed(() => [
-  ...buildTree(categories.value.expense),
-  ...buildTree(categories.value.income)
-])
-
-async function refreshRecords(): Promise<void> {
-  loading.value = true
-  try {
-    records.value = await window.api.getRecords(currentMonth.value)
-  } catch (err) {
-    ElMessage.error('读取账目失败：' + (err instanceof Error ? err.message : String(err)))
-  } finally {
-    loading.value = false
-  }
-}
-
-async function loadCategories(): Promise<void> {
-  const [expense, income] = await Promise.all([
-    window.api.getCategories('expense'),
-    window.api.getCategories('income')
-  ])
-  categories.value = { expense, income }
-}
-
-onMounted(async () => {
-  await loadCategories()
-  await refreshRecords()
-})
-
-// 月度汇总（不受筛选影响，统计整月）
-const monthExpense = computed(() =>
-  records.value.filter((r) => r.type === 'expense').reduce((s, r) => s + r.amountCents, 0)
-)
-const monthIncome = computed(() =>
-  records.value.filter((r) => r.type === 'income').reduce((s, r) => s + r.amountCents, 0)
-)
-const monthBalance = computed(() => monthIncome.value - monthExpense.value)
-
-// 分类筛选 + 备注搜索
-const filteredRecords = computed(() => {
-  let list = records.value
-  if (filterCategoryId.value) {
-    list = list.filter((r) => r.categoryId === filterCategoryId.value)
-  }
-  const kw = keyword.value.trim()
-  if (kw) {
-    list = list.filter((r) => r.note.includes(kw))
-  }
-  return list
-})
-
-// 按日期分组，含每日小计
-interface DayGroup {
-  date: string
-  label: string
-  expense: number
-  income: number
-  items: RecordItem[]
-}
-
-const dayGroups = computed<DayGroup[]>(() => {
-  const map = new Map<string, DayGroup>()
-  const today = dayjs()
-  for (const r of filteredRecords.value) {
-    let g = map.get(r.date)
-    if (!g) {
-      let label: string
-      if (r.date === today.format('YYYY-MM-DD')) label = '今天'
-      else if (r.date === today.subtract(1, 'day').format('YYYY-MM-DD')) label = '昨天'
-      else label = '周' + '日一二三四五六'[dayjs(r.date).day()]
-      g = { date: r.date, label, expense: 0, income: 0, items: [] }
-      map.set(r.date, g)
-    }
-    g.items.push(r)
-    if (r.type === 'expense') g.expense += r.amountCents
-    else g.income += r.amountCents
-  }
-  return [...map.values()]
-})
-
-function formatMoney(cents: number): string {
-  return (cents / 100).toFixed(2)
-}
-
-function openCreate(): void {
-  editingRecord.value = null
-  dialogVisible.value = true
-}
-
-function openEdit(r: RecordItem): void {
-  editingRecord.value = r
-  dialogVisible.value = true
-}
-
-async function onSaved(): Promise<void> {
-  dialogVisible.value = false
-  await refreshRecords()
-}
-
-async function onDeleted(): Promise<void> {
-  dialogVisible.value = false
-  await refreshRecords()
-}
+const active = ref<'bills' | 'stats'>('bills')
 </script>
 
 <template>
-  <div class="page">
-    <header class="topbar">
+  <div class="shell">
+    <aside class="sidebar">
       <div class="brand">🐴 黑马记账</div>
-      <div class="toolbar">
-        <el-date-picker
-          v-model="currentMonth"
-          type="month"
-          value-format="YYYY-MM"
-          :clearable="false"
-          style="width: 120px"
-          @change="refreshRecords"
-        />
-        <el-input v-model="keyword" placeholder="搜索备注" clearable style="width: 160px">
-          <template #prefix>🔍</template>
-        </el-input>
-        <el-select v-model="filterCategoryId" clearable placeholder="全部分类" style="width: 150px">
-          <el-option-group v-for="g in filterGroups" :key="g.label" :label="g.label">
-            <el-option v-for="c in g.children" :key="c.value" :label="c.label" :value="c.value" />
-          </el-option-group>
-        </el-select>
-        <el-button type="primary" size="large" @click="openCreate">＋ 记一笔</el-button>
-      </div>
-    </header>
-
-    <section class="summary">
-      <div class="card">
-        <div class="label">本月支出</div>
-        <div class="num expense">¥ {{ formatMoney(monthExpense) }}</div>
-      </div>
-      <div class="card">
-        <div class="label">本月收入</div>
-        <div class="num income">¥ {{ formatMoney(monthIncome) }}</div>
-      </div>
-      <div class="card">
-        <div class="label">本月结余</div>
-        <div class="num" :class="monthBalance >= 0 ? 'positive' : 'negative'">
-          ¥ {{ formatMoney(monthBalance) }}
+      <nav class="nav">
+        <div class="nav-item" :class="{ active: active === 'bills' }" @click="active = 'bills'">
+          📒 账单
         </div>
-      </div>
-    </section>
-
-    <main v-loading="loading" class="list">
-      <div v-for="g in dayGroups" :key="g.date" class="day-group">
-        <div class="day-head">
-          <span class="date">
-            {{ dayjs(g.date).format('MM月DD日') }} <span class="weekday">{{ g.label }}</span>
-          </span>
-          <span class="day-sum">
-            <span v-if="g.expense" class="e">支 ¥{{ formatMoney(g.expense) }}</span>
-            <span v-if="g.income" class="i">收 ¥{{ formatMoney(g.income) }}</span>
-          </span>
+        <div class="nav-item" :class="{ active: active === 'stats' }" @click="active = 'stats'">
+          📊 统计
         </div>
-        <div v-for="r in g.items" :key="r.id" class="record" @click="openEdit(r)">
-          <div class="icon">{{ r.categoryIcon }}</div>
-          <div class="info">
-            <div class="cname">
-              {{ r.categoryName }}
-              <span class="pname">{{ r.parentName }}</span>
-            </div>
-            <div v-if="r.note" class="note">{{ r.note }}</div>
-          </div>
-          <div class="amount" :class="r.type">
-            {{ r.type === 'expense' ? '-' : '+' }}¥{{ formatMoney(r.amountCents) }}
-          </div>
-        </div>
-      </div>
-      <el-empty
-        v-if="dayGroups.length === 0 && !loading"
-        description="本月还没有账目，点击右上角「＋ 记一笔」开始吧"
-      />
+      </nav>
+      <div class="sidebar-footer">v0.1.0</div>
+    </aside>
+    <main class="content">
+      <!-- 两个页面都保持挂载，切换时不会丢失各自的筛选状态 -->
+      <BillsView v-show="active === 'bills'" />
+      <StatsView v-show="active === 'stats'" />
     </main>
-
-    <RecordFormDialog
-      v-model:visible="dialogVisible"
-      :record="editingRecord"
-      :categories="categories"
-      @saved="onSaved"
-      @deleted="onDeleted"
-    />
   </div>
 </template>
 
 <style scoped>
-.page {
+.shell {
   display: flex;
-  flex-direction: column;
   height: 100vh;
 }
 
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 24px;
+.sidebar {
+  width: 168px;
   background: #fff;
-  border-bottom: 1px solid #ebeef5;
+  border-right: 1px solid #ebeef5;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 12px 14px;
   flex-shrink: 0;
 }
 
 .brand {
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 700;
   color: #303133;
+  padding: 0 10px 22px;
 }
 
-.toolbar {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.summary {
-  display: flex;
-  gap: 16px;
-  padding: 20px 24px 4px;
-  flex-shrink: 0;
-}
-
-.card {
-  flex: 1;
-  background: #fff;
-  border-radius: 10px;
-  padding: 16px 20px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-}
-
-.card .label {
-  font-size: 13px;
-  color: #909399;
-  margin-bottom: 6px;
-}
-
-.card .num {
-  font-size: 22px;
-  font-weight: 700;
-}
-
-.card .num.expense {
-  color: #67c23a;
-}
-
-.card .num.income {
-  color: #f56c6c;
-}
-
-.card .num.positive {
-  color: #409eff;
-}
-
-.card .num.negative {
-  color: #e6a23c;
-}
-
-.list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 8px 24px 24px;
-}
-
-.day-group {
-  margin-top: 12px;
-}
-
-.day-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 4px;
-  font-size: 13px;
-  color: #909399;
-}
-
-.day-head .weekday {
-  margin-left: 6px;
-  color: #c0c4cc;
-}
-
-.day-sum .e {
-  color: #67c23a;
-  margin-right: 10px;
-}
-
-.day-sum .i {
-  color: #f56c6c;
-}
-
-.record {
-  display: flex;
-  align-items: center;
-  background: #fff;
+.nav-item {
+  padding: 10px 12px;
   border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 6px;
   cursor: pointer;
-  transition: box-shadow 0.15s;
+  color: #606266;
+  font-size: 14px;
+  margin-bottom: 4px;
+  user-select: none;
 }
 
-.record:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.record .icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+.nav-item:hover {
   background: #f5f6f8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  margin-right: 12px;
-  flex-shrink: 0;
 }
 
-.record .info {
+.nav-item.active {
+  background: #ecf5ff;
+  color: #409eff;
+  font-weight: 600;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 0 10px;
+  color: #c0c4cc;
+  font-size: 12px;
+}
+
+.content {
   flex: 1;
   min-width: 0;
-}
-
-.record .cname {
-  font-size: 14px;
-  color: #303133;
-}
-
-.record .pname {
-  font-size: 12px;
-  color: #909399;
-  margin-left: 6px;
-}
-
-.record .note {
-  font-size: 12px;
-  color: #c0c4cc;
-  margin-top: 2px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.record .amount {
-  font-size: 15px;
-  font-weight: 600;
-  margin-left: 12px;
-  flex-shrink: 0;
-}
-
-.record .amount.expense {
-  color: #67c23a;
-}
-
-.record .amount.income {
-  color: #f56c6c;
 }
 </style>

@@ -27,6 +27,13 @@ export interface RecordItem {
   parentName: string
 }
 
+/** 某个月的收支合计（用于趋势图） */
+export interface MonthTrend {
+  month: string
+  expense: number
+  income: number
+}
+
 /** 新建 / 修改账目时的输入 */
 export interface RecordInput {
   type: RecordType
@@ -40,6 +47,7 @@ export interface RecordInput {
 export interface Api {
   getCategories: (type: RecordType) => Promise<Category[]>
   getRecords: (month: string) => Promise<RecordItem[]>
+  getMonthTrend: (count: number) => Promise<MonthTrend[]>
   createRecord: (input: RecordInput) => Promise<RecordItem>
   updateRecord: (id: number, input: RecordInput) => Promise<RecordItem>
   deleteRecord: (id: number) => Promise<void>

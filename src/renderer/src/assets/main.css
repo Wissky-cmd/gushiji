@@ -18,3 +18,46 @@ body {
   height: 100vh;
   overflow: hidden;
 }
+
+/* 月度汇总卡片（账单页与统计页共用） */
+.summary {
+  display: flex;
+  gap: 16px;
+  padding: 20px 24px 4px;
+  flex-shrink: 0;
+}
+
+.card {
+  flex: 1;
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.card .label {
+  font-size: 13px;
+  color: #909399;
+  margin-bottom: 6px;
+}
+
+.card .num {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.card .num.expense {
+  color: #67c23a;
+}
+
+.card .num.income {
+  color: #f56c6c;
+}
+
+.card .num.positive {
+  color: #409eff;
+}
+
+.card .num.negative {
+  color: #e6a23c;
+}

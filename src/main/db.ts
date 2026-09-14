@@ -2,7 +2,7 @@ import { app } from 'electron'
 import { join } from 'path'
 import { mkdirSync } from 'fs'
 import { DatabaseSync } from 'node:sqlite'
-import type { Category, RecordItem, RecordInput, RecordType } from '../shared/types'
+import type { Category, MonthTrend, RecordItem, RecordInput, RecordType } from '../shared/types'
 
 // 内置默认分类（与 CLAUDE.md 3.2 一致，仅在首次启动时写入）
 const DEFAULT_CATEGORIES: { type: RecordType; icon: string; name: string; children: string[] }[] = [
@@ -149,4 +149,23 @@ export function updateRecord(id: number, input: RecordInput): RecordItem {
 export function deleteRecord(id: number): void {
   const result = getDb().prepare('DELETE FROM records WHERE id = ?').run(id)
   if (result.changes === 0) throw new Error('该账目不存在')
+}
+
+// 最近 count 个月的收支合计（没有账目的月份不会出现在结果里，由界面补零）
+export function getMonthTrend(count: number): MonthTrend[] {
+  if (!Number.isInteger(count) || count < 1 || count > 60) throw new Error('月份数量不正确')
+  const now = new Date()
+  const start = new Date(now.getFullYear(), now.getMonth() - count + 1, 1)
+  const startDate = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-01`
+  return getDb()
+    .prepare(
+      `SELECT substr(date, 1, 7) AS month,
+              SUM(CASE WHEN type = 'expense' THEN amount_cents ELSE 0 END) AS expense,
+              SUM(CASE WHEN type = 'income' THEN amount_cents ELSE 0 END) AS income
+       FROM records
+       WHERE date >= ?
+       GROUP BY month
+       ORDER BY month`
+    )
+    .all(startDate) as unknown as MonthTrend[]
 }
