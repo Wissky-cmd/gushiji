@@ -104,8 +104,16 @@
 - ✅ 阶段 0：环境准备（项目骨架 + 启动脚本）—— 已验收
 - ✅ 阶段 1：核心记账（记一笔、两级分类、账单列表、编辑/删除、本地保存）—— 已验收
 - ✅ 阶段 2：统计报表（分类占比饼图、12 个月收支趋势）—— 已验收
-- ⏳ 阶段 3：分类管理、CSV 导出、界面打磨 —— 待用户验收
-- ⬜ 阶段 4：打包发布（Windows .exe / macOS .dmg）
+- ✅ 阶段 3：分类管理、CSV 导出、界面打磨 —— 已验收（导出日期列已按用户反馈修复）
+- ⏳ 阶段 4：打包发布 —— Windows 安装包已生成，待用户安装验收；macOS 安装包待定
+
+### 打包发布备忘
+
+- 版本：v1.0.0；安装包：`dist\黑马记账-1.0.0-setup.exe`（electron-builder + NSIS，105MB）
+- 打包命令：`ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/ npm run build:win`
+- 图标生成：`scripts/gen-icon.ps1`（深色圆角底 + 白色"黑马" + 金色 ¥ 徽章，输出到 resources/ 与 build/）
+- macOS 安装包只能在 Mac 上构建（Apple 限制），届时在 Mac 上运行 `ELECTRON_BUILDER_BINARIES_MIRROR=… npm run build:mac` 即可
+- 安装包未做代码签名，安装时 Windows 会提示"未知发布者"，用户点"仍要运行"即可；正式签名需购买证书（未做，用户未要求）
 
 ### 已知约定（开发备忘）
 
