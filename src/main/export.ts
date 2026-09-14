@@ -31,8 +31,9 @@ export async function exportCsv(month: string | null): Promise<ExportResult> {
   if (result.canceled || !result.filePath) return { canceled: true }
 
   const header = ['日期', '类型', '金额(元)', '一级分类', '二级分类', '备注']
+  // 日期列写成 ="YYYY-MM-DD" 文本公式，防止 Excel 自动把它识别成日期并改变显示格式
   const rows = records.map((r) => [
-    r.date,
+    `="${r.date}"`,
     r.type === 'expense' ? '支出' : '收入',
     (r.amountCents / 100).toFixed(2),
     r.parentName,
@@ -41,6 +42,14 @@ export async function exportCsv(month: string | null): Promise<ExportResult> {
   ])
   // 开头加 BOM，保证 Excel 打开时中文不乱码
   const csv = '﻿' + [header, ...rows].map((row) => row.map(escapeCell).join(',')).join('\r\n')
-  writeFileSync(result.filePath, csv, 'utf8')
+  try {
+    writeFileSync(result.filePath, csv, 'utf8')
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code
+    if (code === 'EBUSY' || code === 'EPERM') {
+      throw new Error('该文件正被 Excel 等程序打开占用，请先关闭那个文件再导出，或另存为其他文件名')
+    }
+    throw err
+  }
   return { canceled: false, path: result.filePath, count: records.length }
 }

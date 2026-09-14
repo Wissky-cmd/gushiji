@@ -22,7 +22,7 @@ const active = ref<'bills' | 'stats' | 'cats'>('bills')
           🏷️ 分类
         </div>
       </nav>
-      <div class="sidebar-footer">v0.1.0</div>
+      <div class="sidebar-footer">v1.0.0</div>
     </aside>
     <main class="content">
       <!-- 页面都保持挂载，切换时不会丢失各自的筛选状态，并在重新显示时刷新数据 -->
