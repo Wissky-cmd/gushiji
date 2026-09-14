@@ -2,8 +2,9 @@
 import { ref } from 'vue'
 import BillsView from './components/BillsView.vue'
 import StatsView from './components/StatsView.vue'
+import CategoryView from './components/CategoryView.vue'
 
-const active = ref<'bills' | 'stats'>('bills')
+const active = ref<'bills' | 'stats' | 'cats'>('bills')
 </script>
 
 <template>
@@ -17,13 +18,17 @@ const active = ref<'bills' | 'stats'>('bills')
         <div class="nav-item" :class="{ active: active === 'stats' }" @click="active = 'stats'">
           📊 统计
         </div>
+        <div class="nav-item" :class="{ active: active === 'cats' }" @click="active = 'cats'">
+          🏷️ 分类
+        </div>
       </nav>
       <div class="sidebar-footer">v0.1.0</div>
     </aside>
     <main class="content">
-      <!-- 两个页面都保持挂载，切换时不会丢失各自的筛选状态 -->
-      <BillsView v-show="active === 'bills'" />
-      <StatsView v-show="active === 'stats'" />
+      <!-- 页面都保持挂载，切换时不会丢失各自的筛选状态，并在重新显示时刷新数据 -->
+      <BillsView v-show="active === 'bills'" :visible="active === 'bills'" />
+      <StatsView v-show="active === 'stats'" :visible="active === 'stats'" />
+      <CategoryView v-show="active === 'cats'" :visible="active === 'cats'" />
     </main>
   </div>
 </template>

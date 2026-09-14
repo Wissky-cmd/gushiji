@@ -34,6 +34,24 @@ export interface MonthTrend {
   income: number
 }
 
+/** 新建分类的输入（parentId 为 null 表示一级分类） */
+export interface CategoryInput {
+  type: RecordType
+  parentId: number | null
+  name: string
+  /** 一级分类的图标；二级分类自动跟随父分类，无需传 */
+  icon?: string
+}
+
+/** CSV 导出结果 */
+export interface ExportResult {
+  canceled: boolean
+  /** 没有可导出的账目 */
+  empty?: boolean
+  path?: string
+  count?: number
+}
+
 /** 新建 / 修改账目时的输入 */
 export interface RecordInput {
   type: RecordType
@@ -51,4 +69,9 @@ export interface Api {
   createRecord: (input: RecordInput) => Promise<RecordItem>
   updateRecord: (id: number, input: RecordInput) => Promise<RecordItem>
   deleteRecord: (id: number) => Promise<void>
+  createCategory: (input: CategoryInput) => Promise<Category>
+  updateCategory: (id: number, name: string, icon?: string) => Promise<Category>
+  deleteCategory: (id: number) => Promise<void>
+  moveCategory: (id: number, direction: 'up' | 'down') => Promise<void>
+  exportCsv: (month: string | null) => Promise<ExportResult>
 }

@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { Api, RecordInput, RecordType } from '../shared/types'
+import type { Api, CategoryInput, RecordInput, RecordType } from '../shared/types'
 
 // 界面侧可调用的全部接口（与 src/shared/types.ts 的 Api 一致）
 const api: Api = {
@@ -8,7 +8,14 @@ const api: Api = {
   getMonthTrend: (count: number) => ipcRenderer.invoke('db:getMonthTrend', count),
   createRecord: (input: RecordInput) => ipcRenderer.invoke('db:createRecord', input),
   updateRecord: (id: number, input: RecordInput) => ipcRenderer.invoke('db:updateRecord', id, input),
-  deleteRecord: (id: number) => ipcRenderer.invoke('db:deleteRecord', id)
+  deleteRecord: (id: number) => ipcRenderer.invoke('db:deleteRecord', id),
+  createCategory: (input: CategoryInput) => ipcRenderer.invoke('db:createCategory', input),
+  updateCategory: (id: number, name: string, icon?: string) =>
+    ipcRenderer.invoke('db:updateCategory', id, name, icon),
+  deleteCategory: (id: number) => ipcRenderer.invoke('db:deleteCategory', id),
+  moveCategory: (id: number, direction: 'up' | 'down') =>
+    ipcRenderer.invoke('db:moveCategory', id, direction),
+  exportCsv: (month: string | null) => ipcRenderer.invoke('export:csv', month)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

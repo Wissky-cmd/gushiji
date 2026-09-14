@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import dayjs from 'dayjs'
 import { ElMessage } from 'element-plus'
 import RecordFormDialog from './RecordFormDialog.vue'
 import { formatMoney } from '../utils/format'
 import type { Category, RecordItem } from '../../../shared/types'
+
+const props = defineProps<{ visible: boolean }>()
 
 const currentMonth = ref(dayjs().format('YYYY-MM'))
 const records = ref<RecordItem[]>([])
@@ -63,6 +65,30 @@ onMounted(async () => {
   await loadCategories()
   await refreshRecords()
 })
+
+// 回到本页时刷新分类（可能在分类管理页做过增删改）
+watch(
+  () => props.visible,
+  (v) => {
+    if (v) loadCategories()
+  }
+)
+
+// 导出账目：cmd 为 'month' 导出当前月，'all' 导出全部
+async function handleExport(cmd: string): Promise<void> {
+  const month = cmd === 'month' ? currentMonth.value : null
+  try {
+    const res = await window.api.exportCsv(month)
+    if (res.canceled) return
+    if (res.empty) {
+      ElMessage.warning('没有可导出的账目')
+      return
+    }
+    ElMessage.success(`已导出 ${res.count} 条账目，用 Excel 打开即可查看`)
+  } catch (err) {
+    ElMessage.error('导出失败：' + (err instanceof Error ? err.message : String(err)))
+  }
+}
 
 // 月度汇总（不受筛选影响，统计整月）
 const monthExpense = computed(() =>
@@ -144,18 +170,27 @@ async function onDeleted(): Promise<void> {
         type="month"
         value-format="YYYY-MM"
         :clearable="false"
-        style="width: 120px"
+        style="width: 110px"
         @change="refreshRecords"
       />
       <span class="spacer" />
-      <el-input v-model="keyword" placeholder="搜索备注" clearable style="width: 160px">
+      <el-input v-model="keyword" placeholder="搜索备注" clearable style="width: 140px">
         <template #prefix>🔍</template>
       </el-input>
-      <el-select v-model="filterCategoryId" clearable placeholder="全部分类" style="width: 150px">
+      <el-select v-model="filterCategoryId" clearable placeholder="全部分类" style="width: 130px">
         <el-option-group v-for="g in filterGroups" :key="g.label" :label="g.label">
           <el-option v-for="c in g.children" :key="c.value" :label="c.label" :value="c.value" />
         </el-option-group>
       </el-select>
+      <el-dropdown trigger="click" @command="handleExport">
+        <el-button>导出 ▾</el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="month">导出本月账目</el-dropdown-item>
+            <el-dropdown-item command="all">导出全部账目</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
       <el-button type="primary" size="large" @click="openCreate">＋ 记一笔</el-button>
     </header>
 

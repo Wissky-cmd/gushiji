@@ -2,7 +2,7 @@ import { app } from 'electron'
 import { join } from 'path'
 import { mkdirSync } from 'fs'
 import { DatabaseSync } from 'node:sqlite'
-import type { Category, MonthTrend, RecordItem, RecordInput, RecordType } from '../shared/types'
+import type { Category, CategoryInput, MonthTrend, RecordItem, RecordInput, RecordType } from '../shared/types'
 
 // 内置默认分类（与 CLAUDE.md 3.2 一致，仅在首次启动时写入）
 const DEFAULT_CATEGORIES: { type: RecordType; icon: string; name: string; children: string[] }[] = [
@@ -168,4 +168,85 @@ export function getMonthTrend(count: number): MonthTrend[] {
        ORDER BY month`
     )
     .all(startDate) as unknown as MonthTrend[]
+}
+
+// 全部账目（用于导出备份），按时间正序
+export function getAllRecords(): RecordItem[] {
+  return getDb().prepare(`${RECORD_SELECT} ORDER BY r.date ASC, r.id ASC`).all() as unknown as RecordItem[]
+}
+
+function getCategoryById(id: number): Category | undefined {
+  return getDb()
+    .prepare('SELECT id, type, parent_id AS parentId, name, icon, sort_order AS sortOrder FROM categories WHERE id = ?')
+    .get(id) as unknown as Category | undefined
+}
+
+export function createCategory(input: CategoryInput): Category {
+  const name = input.name.trim()
+  if (!name) throw new Error('分类名称不能为空')
+  let icon = input.icon ?? '📦'
+  if (input.parentId !== null) {
+    const parent = getCategoryById(input.parentId)
+    if (!parent || parent.type !== input.type || parent.parentId !== null) {
+      throw new Error('所属大类不正确')
+    }
+    icon = parent.icon
+  }
+  const max = getDb()
+    .prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM categories WHERE type = ? AND parent_id IS ?')
+    .get(input.type, input.parentId) as { m: number }
+  const result = getDb()
+    .prepare('INSERT INTO categories (type, parent_id, name, icon, sort_order) VALUES (?, ?, ?, ?, ?)')
+    .run(input.type, input.parentId, name, icon, max.m + 1)
+  return getCategoryById(Number(result.lastInsertRowid))!
+}
+
+export function updateCategory(id: number, name: string, icon?: string): Category {
+  const cat = getCategoryById(id)
+  if (!cat) throw new Error('分类不存在')
+  const newName = name.trim()
+  if (!newName) throw new Error('分类名称不能为空')
+  getDb()
+    .prepare('UPDATE categories SET name = ?, icon = ? WHERE id = ?')
+    .run(newName, icon ?? cat.icon, id)
+  if (cat.parentId === null && icon) {
+    // 一级分类换图标时，二级分类跟随
+    getDb().prepare('UPDATE categories SET icon = ? WHERE parent_id = ?').run(icon, id)
+  }
+  return getCategoryById(id)!
+}
+
+export function deleteCategory(id: number): void {
+  const cat = getCategoryById(id)
+  if (!cat) throw new Error('分类不存在')
+  if (cat.parentId === null) {
+    const children = getDb().prepare('SELECT COUNT(*) AS c FROM categories WHERE parent_id = ?').get(id) as { c: number }
+    if (children.c > 0) throw new Error(`「${cat.name}」下还有小分类，请先删除它们`)
+  }
+  const used = getDb().prepare('SELECT COUNT(*) AS c FROM records WHERE category_id = ?').get(id) as { c: number }
+  if (used.c > 0) throw new Error(`「${cat.name}」下已有账目，不能删除（可先删除或修改这些账目）`)
+  getDb().prepare('DELETE FROM categories WHERE id = ?').run(id)
+}
+
+// 在同一层级内上移/下移（交换 sort_order）
+export function moveCategory(id: number, direction: 'up' | 'down'): void {
+  const cat = getCategoryById(id)
+  if (!cat) throw new Error('分类不存在')
+  const siblings = getDb()
+    .prepare('SELECT id, sort_order AS sortOrder FROM categories WHERE type = ? AND parent_id IS ? ORDER BY sort_order, id')
+    .all(cat.type, cat.parentId) as { id: number; sortOrder: number }[]
+  const idx = siblings.findIndex((s) => s.id === id)
+  const targetIdx = direction === 'up' ? idx - 1 : idx + 1
+  if (idx < 0 || targetIdx < 0 || targetIdx >= siblings.length) return
+  const target = siblings[targetIdx]
+  getDb().exec('BEGIN')
+  try {
+    const upd = getDb().prepare('UPDATE categories SET sort_order = ? WHERE id = ?')
+    upd.run(target.sortOrder, cat.id)
+    upd.run(cat.sortOrder, target.id)
+    getDb().exec('COMMIT')
+  } catch (err) {
+    getDb().exec('ROLLBACK')
+    throw err
+  }
 }

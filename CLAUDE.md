@@ -92,5 +92,22 @@
 ## 六、运行与环境说明
 
 - 开发机：用户电脑为 Windows 11（macOS 安装包由 Claude 在打包阶段处理）
-- 所需环境：Node.js（阶段 0 由 Claude 一步步指导安装）
-- 数据文件位置与备份方法：由 Claude 在阶段 1 用大白话向用户说明
+- 所需环境：Node.js（已安装 v24.15.0）
+- 启动方式：双击项目根目录的「启动APP.bat」
+- 数据文件位置（用户全部账目，勿删除）：
+  - Windows：`C:\Users\<用户名>\AppData\Roaming\黑马记账\heimajizhang.db`
+  - macOS：`~/Library/Application Support/黑马记账/heimajizhang.db`
+- 备份方法：APP 内「导出」按钮 → 导出 CSV（Excel 可打开）
+
+## 七、当前进度（2026-09-14 更新）
+
+- ✅ 阶段 0：环境准备（项目骨架 + 启动脚本）—— 已验收
+- ✅ 阶段 1：核心记账（记一笔、两级分类、账单列表、编辑/删除、本地保存）—— 已验收
+- ✅ 阶段 2：统计报表（分类占比饼图、12 个月收支趋势）—— 已验收
+- ⏳ 阶段 3：分类管理、CSV 导出、界面打磨 —— 待用户验收
+- ⬜ 阶段 4：打包发布（Windows .exe / macOS .dmg）
+
+### 已知约定（开发备忘）
+
+- 开发环境有个特殊变量 `ELECTRON_RUN_AS_NODE=1`（仅存在于 Claude 的运行环境），会让 Electron 误当普通程序启动。Claude 启动 dev 时必须先 `unset ELECTRON_RUN_AS_NODE`；「启动APP.bat」中已处理，用户双击启动不受影响。
+- 数据库使用 Electron 39 自带的 `node:sqlite`（无原生编译依赖），账本为标准 SQLite 文件。

@@ -2,8 +2,21 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { initDb, getCategories, getRecords, getMonthTrend, createRecord, updateRecord, deleteRecord } from './db'
-import type { RecordInput, RecordType } from '../shared/types'
+import {
+  initDb,
+  getCategories,
+  getRecords,
+  getMonthTrend,
+  createRecord,
+  updateRecord,
+  deleteRecord,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  moveCategory
+} from './db'
+import { exportCsv } from './export'
+import type { CategoryInput, RecordInput, RecordType } from '../shared/types'
 
 function createWindow(): void {
   // Create the browser window.
@@ -48,6 +61,15 @@ function registerIpcHandlers(): void {
   ipcMain.handle('db:createRecord', (_event, input: RecordInput) => createRecord(input))
   ipcMain.handle('db:updateRecord', (_event, id: number, input: RecordInput) => updateRecord(id, input))
   ipcMain.handle('db:deleteRecord', (_event, id: number) => deleteRecord(id))
+  ipcMain.handle('db:createCategory', (_event, input: CategoryInput) => createCategory(input))
+  ipcMain.handle('db:updateCategory', (_event, id: number, name: string, icon?: string) =>
+    updateCategory(id, name, icon)
+  )
+  ipcMain.handle('db:deleteCategory', (_event, id: number) => deleteCategory(id))
+  ipcMain.handle('db:moveCategory', (_event, id: number, direction: 'up' | 'down') =>
+    moveCategory(id, direction)
+  )
+  ipcMain.handle('export:csv', (_event, month: string | null) => exportCsv(month))
 }
 
 // This method will be called when Electron has finished

@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import dayjs from 'dayjs'
 import { ElMessage } from 'element-plus'
 import type { EChartsOption } from 'echarts'
 import BaseChart from './BaseChart.vue'
 import { formatMoney } from '../utils/format'
 import type { MonthTrend, RecordItem } from '../../../shared/types'
+
+const props = defineProps<{ visible: boolean }>()
 
 const currentMonth = ref(dayjs().format('YYYY-MM'))
 const records = ref<RecordItem[]>([])
@@ -29,6 +31,14 @@ async function refreshAll(): Promise<void> {
 }
 
 onMounted(refreshAll)
+
+// 回到本页时刷新（可能在账单页新增/修改了账目）
+watch(
+  () => props.visible,
+  (v) => {
+    if (v) refreshAll()
+  }
+)
 
 const monthExpense = computed(() =>
   records.value.filter((r) => r.type === 'expense').reduce((s, r) => s + r.amountCents, 0)

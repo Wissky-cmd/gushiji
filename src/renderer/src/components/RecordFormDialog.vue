@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, nextTick, reactive, ref, watch } from 'vue'
 import dayjs from 'dayjs'
 import { ElMessage } from 'element-plus'
 import type { Category, RecordItem, RecordType } from '../../../shared/types'
@@ -25,6 +25,7 @@ const form = reactive({
 })
 
 const saving = ref(false)
+const amountRef = ref<{ focus: () => void }>()
 
 // 当前收支类型下的分类树（一级 → 二级）
 interface CategoryTree {
@@ -66,6 +67,8 @@ watch(
       form.date = dayjs().format('YYYY-MM-DD')
       form.note = ''
     }
+    // 打开后光标直接落在金额输入框，方便快速记账
+    nextTick(() => amountRef.value?.focus())
   }
 )
 
@@ -146,6 +149,7 @@ async function remove(): Promise<void> {
       </el-form-item>
       <el-form-item label="金额（元）">
         <el-input-number
+          ref="amountRef"
           v-model="form.amount"
           :precision="2"
           :min="0.01"
