@@ -107,6 +107,12 @@
 - ✅ 阶段 3：分类管理、CSV 导出、界面打磨 —— 已验收（导出日期列已按用户反馈修复）
 - ⏳ 阶段 4：打包发布 —— Windows 安装包已生成，待用户安装验收；macOS 安装包待定
 
+### GitHub 远程备份（2026-09-15 建立）
+
+- 仓库地址：https://github.com/Wissky-cmd/heimajizhang （公开，README + MIT 许可证）
+- 同步方式：`git push`（Git Credential Manager 已保存登录凭据，无需重复授权）
+- 每次开发有进展：本地提交 + push 一条龙
+
 ### 打包发布备忘
 
 - 版本：v1.0.0；安装包：`dist\黑马记账-1.0.0-setup.exe`（electron-builder + NSIS，105MB）
