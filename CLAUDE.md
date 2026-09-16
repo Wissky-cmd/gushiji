@@ -115,6 +115,13 @@
 - 同步方式：`git push`（Git Credential Manager 已保存登录凭据，无需重复授权）
 - 每次开发有进展：本地提交 + push 一条龙
 
+### Gitee 双备份（2026-09-16 建立）
+
+- 仓库地址：https://gitee.com/W1ssky/itW1ssky-accounting-app
+- 推送方式：SSH 钥匙（`~/.ssh/id_ed25519`，公钥已登记在 Gitee），命令 `git push gitee`
+- 提交署名：2026-09-16 起改为 `W1ssky` + Gitee 匿名邮箱（仓库级配置，不影响其他项目）
+- 双远程布局：`origin` = GitHub（默认推送目标），`gitee` = Gitee（`git push gitee` 显式推送）
+
 ### 打包发布备忘
 
 - 版本：v1.0.0；安装包：`dist\故事记-1.0.0-setup.exe`（electron-builder + NSIS）
