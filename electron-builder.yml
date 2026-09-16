@@ -13,6 +13,8 @@ asarUnpack:
   - 'resources/**'
 win:
   executableName: heimajizhang
+  # 本机环境下改写 exe 资源(图标/版本信息)会导致程序启动即静默退出，故关闭该步骤
+  signAndEditExecutable: false
 nsis:
   artifactName: ${productName}-${version}-setup.${ext}
   shortcutName: ${productName}
