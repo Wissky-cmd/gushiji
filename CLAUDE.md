@@ -127,3 +127,4 @@
 
 - 开发环境有个特殊变量 `ELECTRON_RUN_AS_NODE=1`（仅存在于 Claude 的运行环境），会让 Electron 误当普通程序启动。Claude 启动 dev 时必须先 `unset ELECTRON_RUN_AS_NODE`；「启动APP.bat」中已处理，用户双击启动不受影响。
 - 数据库使用 Electron 39 自带的 `node:sqlite`（无原生编译依赖），账本为标准 SQLite 文件。
+- ⚠️ **打包坑（2026-09-16 踩过）**：electron-builder 默认会改写 exe 资源（塞图标/写版本信息，日志里显示 "signing with signtool.exe"），在本机环境下这一步会把 exe 改坏——打包后程序双击无反应、静默退出（退出码 1、无任何报错）。已在 electron-builder.yml 关闭：`win.signAndEditExecutable: false`。代价：exe 暂用 Electron 默认图标。以后若要加自定义图标，需先研究安全的写入方式（如预生成标准 .ico）再尝试开启。
