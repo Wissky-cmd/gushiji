@@ -10,3 +10,7 @@ release/
 *.log
 .DS_Store
 Thumbs.db
+
+# 私人文件（不纳入版本管理，已移出仓库）
+简历素材.md
+.claude/settings.local.json
