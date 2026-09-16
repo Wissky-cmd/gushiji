@@ -1,4 +1,4 @@
-# Generate the heimajizhang app icon (dark rounded square, white "HeiMa", amber yen badge)
+# Generate the gushiji app icon (dark rounded square, white "GuShi", amber yen badge)
 # Usage: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/gen-icon.ps1
 # Note: all coordinates are precomputed literals (PowerShell mangles inline arithmetic in New-Object args)
 Add-Type -AssemblyName System.Drawing
@@ -22,11 +22,11 @@ $gpath.CloseFigure()
 $bgBrush = New-Object System.Drawing.SolidBrush($bgColor)
 $g.FillPath($bgBrush, $gpath)
 
-# Main text "HeiMa" (U+9ED1 U+9A6C), centered, slightly raised for optical balance
+# Main text "GuShi" (U+6545 U+4E8B), centered, slightly raised for optical balance
 $center = New-Object System.Drawing.StringFormat
 $center.Alignment = [System.Drawing.StringAlignment]::Center
 $center.LineAlignment = [System.Drawing.StringAlignment]::Center
-$text = -join ([char]0x9ED1, [char]0x9A6C)
+$text = -join ([char]0x6545, [char]0x4E8B)
 $fontMain = New-Object System.Drawing.Font('Microsoft YaHei', 185, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
 $whiteBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::White)
 $mainRect = New-Object System.Drawing.RectangleF -ArgumentList @(0, -24, 512, 512)

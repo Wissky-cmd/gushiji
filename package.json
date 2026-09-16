@@ -1,7 +1,7 @@
 {
-  "name": "heimajizhang",
+  "name": "gushiji",
   "version": "1.0.0",
-  "description": "黑马记账 —— 桌面记账应用",
+  "description": "故事记 —— 桌面记账应用",
   "main": "./out/main/index.js",
   "author": "黑马记账用户",
   "scripts": {

@@ -1,10 +1,10 @@
-# 黑马记账 — 项目文档
+# 故事记 — 项目文档
 
 > 桌面记账应用 ｜ 运行平台：Windows + macOS ｜ 中文界面 ｜ 数据本机存储
 
 ## 一、项目简介
 
-「黑马记账」是一款桌面记账应用：记录每一笔人民币支出和收入，按两级分类管理账目，提供月度统计图表，支持导出数据备份。
+「故事记」是一款桌面记账应用：记录每一笔人民币支出和收入，按两级分类管理账目，提供月度统计图表，支持导出数据备份。
 
 - **目标用户**：个人日常记账
 - **核心场景**：花了一笔钱 → 打开 APP 记一笔（选分类、填金额）→ 月底看统计，知道钱花哪儿了
@@ -95,8 +95,9 @@
 - 所需环境：Node.js（已安装 v24.15.0）
 - 启动方式：双击项目根目录的「启动APP.bat」
 - 数据文件位置（用户全部账目，勿删除）：
-  - Windows：`C:\Users\<用户名>\AppData\Roaming\黑马记账\heimajizhang.db`
-  - macOS：`~/Library/Application Support/黑马记账/heimajizhang.db`
+  - Windows：`C:\Users\<用户名>\AppData\Roaming\故事记\heimajizhang.db`
+  - macOS：`~/Library/Application Support/故事记/heimajizhang.db`
+  - 2026-09-16 由「黑马记账」更名而来：首次启动自动把旧账本复制到新位置，旧文件夹保留作备份
 - 备份方法：APP 内「导出」按钮 → 导出 CSV（Excel 可打开）
 
 ## 七、当前进度（2026-09-14 更新）
@@ -106,18 +107,19 @@
 - ✅ 阶段 2：统计报表（分类占比饼图、12 个月收支趋势）—— 已验收
 - ✅ 阶段 3：分类管理、CSV 导出、界面打磨 —— 已验收（导出日期列已按用户反馈修复）
 - ⏳ 阶段 4：打包发布 —— Windows 安装包已生成，待用户安装验收；macOS 安装包待定
+- 🔁 2026-09-16 更名：黑马记账 → 故事记（界面、窗口、图标、安装包、文档全部更新；账本自动迁移，旧文件夹保留备份）
 
 ### GitHub 远程备份（2026-09-15 建立）
 
-- 仓库地址：https://github.com/Wissky-cmd/heimajizhang （公开，README + MIT 许可证）
+- 仓库地址：https://github.com/Wissky-cmd/gushiji （公开，README + MIT 许可证）
 - 同步方式：`git push`（Git Credential Manager 已保存登录凭据，无需重复授权）
 - 每次开发有进展：本地提交 + push 一条龙
 
 ### 打包发布备忘
 
-- 版本：v1.0.0；安装包：`dist\黑马记账-1.0.0-setup.exe`（electron-builder + NSIS，105MB）
+- 版本：v1.0.0；安装包：`dist\故事记-1.0.0-setup.exe`（electron-builder + NSIS）
 - 打包命令：`ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/ npm run build:win`
-- 图标生成：`scripts/gen-icon.ps1`（深色圆角底 + 白色"黑马" + 金色 ¥ 徽章，输出到 resources/ 与 build/）
+- 图标生成：`scripts/gen-icon.ps1`（深色圆角底 + 白色"故事" + 金色 ¥ 徽章，输出到 resources/ 与 build/）
 - macOS 安装包只能在 Mac 上构建（Apple 限制），届时在 Mac 上运行 `ELECTRON_BUILDER_BINARIES_MIRROR=… npm run build:mac` 即可
 - 安装包未做代码签名，安装时 Windows 会提示"未知发布者"，用户点"仍要运行"即可；正式签名需购买证书（未做，用户未要求）
 

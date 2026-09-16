@@ -20,7 +20,7 @@ export async function exportCsv(month: string | null): Promise<ExportResult> {
   const records = month ? getRecords(month) : getAllRecords()
   if (records.length === 0) return { canceled: false, empty: true }
 
-  const defaultName = month ? `黑马记账-${month}.csv` : `黑马记账-全部账目-${todayStamp()}.csv`
+  const defaultName = month ? `故事记-${month}.csv` : `故事记-全部账目-${todayStamp()}.csv`
   const options = {
     title: '导出账目',
     defaultPath: join(app.getPath('documents'), defaultName),

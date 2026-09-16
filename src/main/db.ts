@@ -1,6 +1,6 @@
 import { app } from 'electron'
 import { join } from 'path'
-import { mkdirSync } from 'fs'
+import { copyFileSync, existsSync, mkdirSync } from 'fs'
 import { DatabaseSync } from 'node:sqlite'
 import type { Category, CategoryInput, MonthTrend, RecordItem, RecordInput, RecordType } from '../shared/types'
 
@@ -31,12 +31,25 @@ function getDb(): DatabaseSync {
 }
 
 // 数据文件位置（与 CLAUDE.md 六 一致，本机存储）：
-// Windows: C:\Users\<用户名>\AppData\Roaming\黑马记账\heimajizhang.db
-// macOS:   ~/Library/Application Support/黑马记账/heimajizhang.db
+// Windows: C:\Users\<用户名>\AppData\Roaming\故事记\heimajizhang.db
+// macOS:   ~/Library/Application Support/故事记/heimajizhang.db
 export function initDb(): void {
-  const dataDir = join(app.getPath('appData'), '黑马记账')
+  const dataDir = join(app.getPath('appData'), '故事记')
   mkdirSync(dataDir, { recursive: true })
-  db = new DatabaseSync(join(dataDir, 'heimajizhang.db'))
+  const dbPath = join(dataDir, 'heimajizhang.db')
+  // 旧版数据搬家：新账本不存在且旧版「黑马记账」账本存在时，复制过来（旧文件保留作备份）
+  if (!existsSync(dbPath)) {
+    const legacyDir = join(app.getPath('appData'), '黑马记账')
+    const legacyDb = join(legacyDir, 'heimajizhang.db')
+    if (existsSync(legacyDb)) {
+      copyFileSync(legacyDb, dbPath)
+      for (const ext of ['-wal', '-shm']) {
+        const side = join(legacyDir, `heimajizhang.db${ext}`)
+        if (existsSync(side)) copyFileSync(side, join(dataDir, `heimajizhang.db${ext}`))
+      }
+    }
+  }
+  db = new DatabaseSync(dbPath)
   db.exec(`
     PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS categories (

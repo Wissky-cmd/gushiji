@@ -26,7 +26,7 @@ function createWindow(): void {
     minWidth: 860,
     minHeight: 620,
     show: false,
-    title: '黑马记账',
+    title: '故事记',
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {

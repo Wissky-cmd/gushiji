@@ -10,7 +10,7 @@ const active = ref<'bills' | 'stats' | 'cats'>('bills')
 <template>
   <div class="shell">
     <aside class="sidebar">
-      <div class="brand">🐴 黑马记账</div>
+      <div class="brand">📖 故事记</div>
       <nav class="nav">
         <div class="nav-item" :class="{ active: active === 'bills' }" @click="active = 'bills'">
           📒 账单
