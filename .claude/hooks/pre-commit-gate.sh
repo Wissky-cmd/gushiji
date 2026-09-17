@@ -15,10 +15,9 @@ INPUT=$(cat)
 CMD=$(printf '%s' "$INPUT" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{console.log(JSON.parse(s).tool_input.command||'')}catch(e){console.log('')}})" 2>/dev/null)
 if [ -z "$CMD" ]; then deny "无法解析提交命令，已保守拦截（请重新尝试存档）"; fi
 
-# 只拦 git commit（第一位置参数恰好是 commit；子命令如 add/status/push 一律放行）
-FIRST=$(printf '%s' "$CMD" | awk '{print $1}')
-SECOND=$(printf '%s' "$CMD" | awk '{print $2}')
-if [ "$FIRST" != "git" ] || [ "$SECOND" != "commit" ]; then exit 0; fi
+# 把命令按 && 或 ; 拆成小段，任何一小段以 "git commit" 开头都拦（git add/status/push 等一律放行）
+IS_COMMIT=$(printf '%s' "$CMD" | awk '{n=split($0,segs,/&&|;/); for(i=1;i<=n;i++){m=split(segs[i],w," "); if(w[1]=="git"&&w[2]=="commit"){print "yes"; exit}}}')
+if [ "$IS_COMMIT" != "yes" ]; then exit 0; fi
 
 # 计算当前代码指纹（含暂存+未暂存的全部改动；无改动提交时 git 自身会报错，不会走到这里）
 cd "$PROJECT_DIR" || deny "进入项目目录失败，已保守拦截"
