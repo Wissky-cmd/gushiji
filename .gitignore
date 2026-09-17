@@ -11,12 +11,12 @@ release/
 .DS_Store
 Thumbs.db
 
-# ESLint 缓存（每次 lint 自动重建，入库会搅乱体检章指纹）
+# ESLint 缓存（每次 lint 自动重建，入库会搅乱通行证指纹）
 .eslintcache
 
 # 私人文件（不纳入版本管理，已移出仓库）
 简历素材.md
 .claude/settings.local.json
 
-# 体检章与放行票（提交闸门的本地状态，不进版本库）
+# 体检通行证与放行通行证（提交闸门的本地状态，不进版本库）
 .claude/quality-gates/

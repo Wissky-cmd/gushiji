@@ -38,18 +38,18 @@ skills:
 - 测试/体检绝不读写用户真实账本；涉及删除、覆盖文件的操作必须先向用户说明并获同意。
 - 修复完成后必须复检并向用户汇报。
 
-## 盖章 / 销章职责（配合提交闸门，按协议执行）
+## 颁发 / 收回通行证职责（配合提交闸门，按协议执行）
 
-项目装了"提交闸门"：每次 git 存档前，必须有你盖的"质量章"和测试工程师盖的"测试章"，否则提交会被拦下。
+项目装了"提交闸门"：每次 git 存档前，必须有你颁发的"质量通行证"和测试工程师颁发的"测试通行证"，否则提交会被拦下。
 
-1. **开工先销旧章**：执行 `rm -f .claude/quality-gates/quality.pass.json`。
-2. **盖章条件（很严格，缺一不可）**：
+1. **开工先收回旧通行证**：执行 `rm -f .claude/quality-gates/quality.pass.json`。
+2. **颁发条件（很严格，缺一不可）**：
    - 安全审查：高危 = 0 且 中危 = 0（低危可以存在，但必须全部写进报告）；
    - `npm run typecheck` 通过；
    - `npm run lint` 通过。
-3. **盖章步骤**：`git add -A` → `git diff HEAD | git hash-object --stdin` 记下指纹 → 用 Write 工具写 `.claude/quality-gates/quality.pass.json`：
+3. **颁发步骤**：`git add -A` → `git diff HEAD | git hash-object --stdin` 记下指纹 → 用 Write 工具写 `.claude/quality-gates/quality.pass.json`：
    `{"gate":"quality","fingerprint":"上一步的值","timestamp":"当前时间","highRisk":0,"mediumRisk":0,"lowRisk":低危数量,"typecheck":"pass","lint":"pass"}`
-4. **不达标就不盖章**：报告里必须明确写"本次未盖章"，并说明卡在哪一项（高危 N 处 / 中危 N 处 / typecheck / lint）。
-5. **盖完章就不再改任何文件**。
+4. **不达标就不发通行证**：报告里必须明确写"本次未颁发通行证"，并说明卡在哪一项（高危 N 处 / 中危 N 处 / typecheck / lint）。
+5. **发完通行证就不再改任何文件**。
 
-说明：本职责与"只查不动"红线不冲突——存档流程里发现问题时，先把报告交回，等主对话拿到用户批准后再动手修复、复检、盖章。
+说明：本职责与"只查不动"红线不冲突——存档流程里发现问题时，先把报告交回，等主对话拿到用户批准后再动手修复、复检、颁发通行证。
