@@ -19,7 +19,8 @@ async function refreshAll(): Promise<void> {
   try {
     const [recs, t] = await Promise.all([
       window.api.getRecords(currentMonth.value),
-      window.api.getMonthTrend(12)
+      // 趋势图以所选月份为终点往前推 12 个月（与横轴一致）
+      window.api.getMonthTrend(12, currentMonth.value)
     ])
     records.value = recs
     trend.value = t
@@ -100,8 +101,8 @@ const trendOption = computed<EChartsOption>(() => {
     yAxis: {
       type: 'value',
       axisLabel: {
-        formatter: (v: number) =>
-          Math.abs(v) >= 1000000 ? `${v / 1000000}万` : v >= 10000 ? `${v / 10000}万` : `${v / 100}`
+        // 刻度单位是「分」：1 万元（1000000 分）以上显示成"X万"，其余直接显示成"元"
+        formatter: (v: number) => (Math.abs(v) >= 1000000 ? `${v / 1000000}万` : `${v / 100}`)
       }
     },
     series: [

@@ -43,7 +43,7 @@ describe('CSV 文件内容（buildCsv）', () => {
 
   it('表头为：日期、类型、金额(元)、一级分类、二级分类、备注', () => {
     const csv = buildCsv([record()])
-    const lines = csv.replace(/^﻿/, '').split('\r\n')
+    const lines = csv.replace(/^\uFEFF/, '').split('\r\n')
     expect(lines[0]).toBe('日期,类型,金额(元),一级分类,二级分类,备注')
   })
 

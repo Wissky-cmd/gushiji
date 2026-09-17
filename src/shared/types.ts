@@ -65,7 +65,7 @@ export interface RecordInput {
 export interface Api {
   getCategories: (type: RecordType) => Promise<Category[]>
   getRecords: (month: string) => Promise<RecordItem[]>
-  getMonthTrend: (count: number) => Promise<MonthTrend[]>
+  getMonthTrend: (count: number, endMonth?: string) => Promise<MonthTrend[]>
   createRecord: (input: RecordInput) => Promise<RecordItem>
   updateRecord: (id: number, input: RecordInput) => Promise<RecordItem>
   deleteRecord: (id: number) => Promise<void>

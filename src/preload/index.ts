@@ -5,9 +5,11 @@ import type { Api, CategoryInput, RecordInput, RecordType } from '../shared/type
 const api: Api = {
   getCategories: (type: RecordType) => ipcRenderer.invoke('db:getCategories', type),
   getRecords: (month: string) => ipcRenderer.invoke('db:getRecords', month),
-  getMonthTrend: (count: number) => ipcRenderer.invoke('db:getMonthTrend', count),
+  getMonthTrend: (count: number, endMonth?: string) =>
+    ipcRenderer.invoke('db:getMonthTrend', count, endMonth),
   createRecord: (input: RecordInput) => ipcRenderer.invoke('db:createRecord', input),
-  updateRecord: (id: number, input: RecordInput) => ipcRenderer.invoke('db:updateRecord', id, input),
+  updateRecord: (id: number, input: RecordInput) =>
+    ipcRenderer.invoke('db:updateRecord', id, input),
   deleteRecord: (id: number) => ipcRenderer.invoke('db:deleteRecord', id),
   createCategory: (input: CategoryInput) => ipcRenderer.invoke('db:createCategory', input),
   updateCategory: (id: number, name: string, icon?: string) =>

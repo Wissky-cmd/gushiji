@@ -40,7 +40,10 @@ function createWindow(): void {
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+    // 只放行 http/https 链接交给系统浏览器打开，拦掉 file:// 等危险协议
+    if (details.url.startsWith('https://') || details.url.startsWith('http://')) {
+      shell.openExternal(details.url)
+    }
     return { action: 'deny' }
   })
 
@@ -57,9 +60,13 @@ function createWindow(): void {
 function registerIpcHandlers(): void {
   ipcMain.handle('db:getCategories', (_event, type: RecordType) => getCategories(type))
   ipcMain.handle('db:getRecords', (_event, month: string) => getRecords(month))
-  ipcMain.handle('db:getMonthTrend', (_event, count: number) => getMonthTrend(count))
+  ipcMain.handle('db:getMonthTrend', (_event, count: number, endMonth?: string) =>
+    getMonthTrend(count, endMonth)
+  )
   ipcMain.handle('db:createRecord', (_event, input: RecordInput) => createRecord(input))
-  ipcMain.handle('db:updateRecord', (_event, id: number, input: RecordInput) => updateRecord(id, input))
+  ipcMain.handle('db:updateRecord', (_event, id: number, input: RecordInput) =>
+    updateRecord(id, input)
+  )
   ipcMain.handle('db:deleteRecord', (_event, id: number) => deleteRecord(id))
   ipcMain.handle('db:createCategory', (_event, input: CategoryInput) => createCategory(input))
   ipcMain.handle('db:updateCategory', (_event, id: number, name: string, icon?: string) =>

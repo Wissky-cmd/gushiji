@@ -43,7 +43,9 @@ export async function exportCsv(month: string | null): Promise<ExportResult> {
     filters: [{ name: 'CSV 文件', extensions: ['csv'] }]
   }
   const win = BrowserWindow.getFocusedWindow()
-  const result = win ? await dialog.showSaveDialog(win, options) : await dialog.showSaveDialog(options)
+  const result = win
+    ? await dialog.showSaveDialog(win, options)
+    : await dialog.showSaveDialog(options)
   if (result.canceled || !result.filePath) return { canceled: true }
 
   const csv = buildCsv(records)

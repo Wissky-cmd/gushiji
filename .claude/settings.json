@@ -1,7 +1,35 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(grep -nE 'prepare\\\\\\(`?\\\\s*[^`]*[?]' src/main/db.ts)",
+      "Bash(npm audit *)",
+      "Bash(powershell -NoProfile -Command 'Add-Type -AssemblyName System.Drawing; $img = [System.Drawing.Image]::FromFile\\('\\\\''E:\\\\黑马记账APP\\\\屏幕截图 2026-09-17 143829.png'\\\\''\\); $w = 800; $h = [int]\\($img.Height * $w / $img.Width\\); $bmp = New-Object System.Drawing.Bitmap\\($img, $w, $h\\); $bmp.Save\\('\\\\''E:\\\\黑马记账APP\\\\报告样式-压缩.jpg'\\\\'', [System.Drawing.Imaging.ImageFormat]::Jpeg\\); $bmp.Dispose\\(\\); $img.Dispose\\(\\); Write-Host '\\\\''OK'\\\\''')",
+      "Edit(/.claude/skills/security-audit/**)",
+      "Bash(node -e \"const fs=require\\('fs'\\);const s=fs.readFileSync\\('tests/export.test.ts','utf8'\\);const line=s.split\\('\\\\n'\\)[45];for\\(let i=0;i<line.length;i++\\){const c=line[i];if\\(c.charCodeAt\\(0\\)>127\\)console.log\\('pos',i,'char',JSON.stringify\\(c\\),'code',c.charCodeAt\\(0\\).toString\\(16\\)\\)}\")",
+      "Bash(node scripts/fix-bom-temp.js)",
+      "Bash(rm scripts/fix-bom-temp.js)",
+      "Bash(echo \"typecheck errors: $?\")",
+      "Bash(cd \"E:\\\\黑马记账APP\" && mkdir -p .claude/quality-gates)",
+      "Bash(bash .claude/hooks/pre-commit-gate.sh)"
+    ],
+    "additionalDirectories": [
+      "E:\\黑马记账APP\\.claude"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-commit-gate.sh",
+            "if": "Bash(git *)",
+            "timeout": 300
+          }
+        ]
+      }
     ]
   }
 }

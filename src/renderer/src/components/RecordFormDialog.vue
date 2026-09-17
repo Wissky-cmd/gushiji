@@ -41,9 +41,7 @@ const tree = computed<CategoryTree[]>(() => {
     .map((p) => ({
       value: p.id,
       label: `${p.icon} ${p.name}`,
-      children: list
-        .filter((c) => c.parentId === p.id)
-        .map((c) => ({ value: c.id, label: c.name }))
+      children: list.filter((c) => c.parentId === p.id).map((c) => ({ value: c.id, label: c.name }))
     }))
 })
 

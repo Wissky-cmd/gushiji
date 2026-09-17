@@ -209,7 +209,9 @@ describe('月度统计（getMonthTrend）', () => {
     const today = dayjs().format('YYYY-MM-DD')
     createRecord(validInput({ date: today, amountCents: 2000 }))
     createRecord(validInput({ date: today, amountCents: 500 }))
-    createRecord(validInput({ type: 'income', date: today, amountCents: 100000, categoryId: incomeChildId() }))
+    createRecord(
+      validInput({ type: 'income', date: today, amountCents: 100000, categoryId: incomeChildId() })
+    )
     const thisMonth = today.slice(0, 7)
     const trend = getMonthTrend(1)
     expect(trend).toEqual([{ month: thisMonth, expense: 2500, income: 100000 }])
@@ -233,6 +235,23 @@ describe('月度统计（getMonthTrend）', () => {
     expect(() => getMonthTrend(-1)).toThrow('月份数量不正确')
     expect(() => getMonthTrend(1.5)).toThrow('月份数量不正确')
     expect(() => getMonthTrend(61)).toThrow('月份数量不正确')
+  })
+
+  it('支持指定截止月份：回看过去月份时，统计窗口跟随所选月份', () => {
+    const threeMonthsAgo = dayjs().subtract(3, 'month').format('YYYY-MM-DD')
+    createRecord(validInput({ date: threeMonthsAgo, amountCents: 700, note: '三个月前' }))
+    const endMonth = threeMonthsAgo.slice(0, 7)
+    // 截止到 3 个月前：这笔账在窗口内，应统计到
+    const withEnd = getMonthTrend(1, endMonth)
+    expect(withEnd).toHaveLength(1)
+    expect(withEnd[0].expense).toBe(700)
+    // 不传截止月份（默认以今天为终点）：这笔账在窗口外，不应出现
+    const noEnd = getMonthTrend(1)
+    expect(noEnd.some((t) => t.expense === 700)).toBe(false)
+  })
+
+  it('截止月份格式不正确时报错', () => {
+    expect(() => getMonthTrend(12, '2026-9')).toThrow('月份格式不正确')
   })
 })
 
@@ -265,9 +284,9 @@ describe('分类管理', () => {
       '所属大类不正确'
     )
     // 收入分类挂到支出一级分类下 → 报错
-    expect(() =>
-      createCategory({ type: 'income', parentId: parent.id, name: '卖宠物' })
-    ).toThrow('所属大类不正确')
+    expect(() => createCategory({ type: 'income', parentId: parent.id, name: '卖宠物' })).toThrow(
+      '所属大类不正确'
+    )
   })
 
   it('一级分类换图标后，二级分类图标跟随', () => {
@@ -297,13 +316,17 @@ describe('分类管理', () => {
   })
 
   it('分类下已有账目时不能删除', () => {
-    const child = createCategory({ type: 'expense', parentId: firstParentId('expense'), name: '临时分类' })
+    const child = createCategory({
+      type: 'expense',
+      parentId: firstParentId('expense'),
+      name: '临时分类'
+    })
     createRecord(validInput({ categoryId: child.id }))
     expect(() => deleteCategory(child.id)).toThrow('已有账目，不能删除')
   })
 
   it('同一层级内移动分类（上移/下移交换顺序）', () => {
-    const a = createCategory({ type: 'expense', parentId: null, name: '分类A', icon: '🅰️' })
+    createCategory({ type: 'expense', parentId: null, name: '分类A', icon: '🅰️' })
     const b = createCategory({ type: 'expense', parentId: null, name: '分类B', icon: '🅱️' })
     // 初始顺序：…内置…, A, B
     const names = (): string[] => getCategories('expense').map((c) => c.name)
