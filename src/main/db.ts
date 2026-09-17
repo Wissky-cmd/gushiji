@@ -30,6 +30,12 @@ function getDb(): DatabaseSync {
   return db
 }
 
+// 关闭数据库连接（应用退出时调用；单元测试用它释放文件占用后清理临时目录）
+export function closeDb(): void {
+  db?.close()
+  db = null
+}
+
 // 数据文件位置（与 CLAUDE.md 六 一致，本机存储）：
 // Windows: C:\Users\<用户名>\AppData\Roaming\故事记\heimajizhang.db
 // macOS:   ~/Library/Application Support/故事记/heimajizhang.db
